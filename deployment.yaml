@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: disp-monitoring
+  labels:
+    apps: web-based
+  annotations:
+    type: monitor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-service
+  namespace: disp-monitoring
+spec:
+  selector:
+    app: reciever
+  ports:
+    - protocol: TCP
+      port: 65432
+      targetPort: 65432
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: reciever
+  labels:
+    env: display
+spec:
+  containers:
+  - image: iefak01/temperaturemonitor_reciever:latest
+    securityContext:
+      privileged: true
+    name: reciever
+    ports:
+    - containerPort: 65432
+  nodeSelector:
+    display: "true"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sender
+  namespace: disp-monitoring
+spec:
+  selector:
+    matchLabels:
+      name: sender
+  template:
+    metadata:
+      labels:
+        name: sender
+    spec:
+      tolerations:
+      # this toleration is to have the daemonset runnable on master nodes
+      # remove it if your masters can't run pods
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      containers:
+      - name: sender
+        image: iefak01/temperaturemonitor_sendedr:latest
