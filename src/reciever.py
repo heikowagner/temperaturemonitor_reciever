@@ -21,12 +21,29 @@ import time
 import asyncio
 import random
 
+import pandas as pd
+cols= ['LastUpdate', 'Name', 'Temperature']
+current_stats=pd.DataFrame(columns=cols)
+
+#rows_list = []
+
 async def print_temp(device, temp, disp):
     # Clear display.
     # disp.clear()
     print(temp['Temperatur'])
     temperature=int(temp['Temperatur'])/1000
+    new_data=pd.DataFrame({'LastUpdate': temp['Time'], 'Name': temp['Hostname'], 'Temperature': temperature}, index=[temp['Hostname']])
 
+    global current_stats
+    if not temp['Hostname'] in current_stats.index:
+        current_stats = current_stats.append(new_data)
+    else:
+        current_stats.update(new_data)
+    print(current_stats)
+
+        
+    #rows_list.append(dict1)
+    #print(rows_list)
     # image = Image.new('RGB', (disp.width,disp.height), (255,255,255)) 
     image = Image.new('RGB', (disp.height,disp.width), (000,000,000)) 
 
@@ -45,7 +62,14 @@ async def print_temp(device, temp, disp):
     
     print ("***draw text")
     draw.text((60,30), u'Cluster Stats', font = font30, fill = "WHITE")
-    draw.text((50, 75), 'Current Temp: '+ str(temperature) +' C', font = font18, fill = "lightgrey")
+    
+    position=75
+    for row in current_stats.head().itertuples():
+        print(row)
+        print_out=row.Index + ': '+ str( row.Temperature)  +' C'
+        print(print_out)
+        draw.text((50, position), print_out, font = font18, fill = "lightgrey")
+        position=position+20
     #draw.text((75, 110), '2.0inch LCD ', font = font15, fill = "BLUE")
     #draw.text((72, 140), 'Test Program ', font = font15, fill = "BLUE")
 

@@ -1,20 +1,20 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: disp-monitoring
-  labels:
-    apps: web-based
-  annotations:
-    type: monitor
----
+#apiVersion: v1
+#kind: Namespace
+#metadata:
+#  name: disp-monitoring
+#  labels:
+#    apps: web-based
+#  annotations:
+#    type: monitor
+#---
 apiVersion: v1
 kind: Service
 metadata:
-  name: monitor-service
+  name: svc-monitor
   namespace: disp-monitoring
 spec:
   selector:
-    app: reciever
+    env: display
   ports:
     - protocol: TCP
       port: 65432
@@ -24,6 +24,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: reciever
+  namespace: disp-monitoring
   labels:
     env: display
 spec:
@@ -59,3 +60,6 @@ spec:
       containers:
       - name: sender
         image: iefak01/temperaturemonitor_sendedr:latest
+        env:
+        - name: RECIEVERIP
+          value: svc-monitor
